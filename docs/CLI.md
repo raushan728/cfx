@@ -1,117 +1,128 @@
-# CLI Reference
+# Command Reference & Usage Guide
 
-CFX is driven via the command line interface. The interface relies on a subcommand structure managed by `clap`.
-
-## Global Flags
-
-- `--help`: Print short usage information for a command or CFX generally.
-- `--version`: Print the current CFX version.
+CFX is designed to be simple and accessible, even if you aren't familiar with command-line tools. This guide will show you exactly how to use each command with practical, real-world examples.
 
 ---
 
-## `cfx encrypt`
+## 1. Encrypting a File (`cfx encrypt`)
 
-**Purpose**: Encrypt a target file into a `.cfx` archive.
+**What it does**: Takes any file (like a PDF, photo, or document) and securely locks it into a `.cfx` archive. By default, it safely deletes your original file once the encryption is successful, leaving only the locked version.
 
-**Syntax**:
+**Basic Usage**:
 ```bash
-cfx encrypt <INPUT> [OPTIONS]
+cfx encrypt <file>
 ```
 
-**Arguments**:
-- `<INPUT>`: The required file path to encrypt.
+**Beginner-Friendly Examples**:
 
-**Options**:
-- `-o, --output <PATH>`: The explicit path to write the encrypted file to. If omitted, CFX automatically appends `.cfx` to the input filename.
-- `-f, --force`: Overwrite the destination output file if it already exists.
-- `--keep`: Do not delete the original `<INPUT>` file after successful encryption.
-- `--no-progress`: Disable the interactive progress bar.
-
-**Examples**:
+*Scenario A: You have a tax document called `taxes_2026.pdf` that you want to securely lock.*
 ```bash
-# Basic usage (deletes standard.pdf, creates standard.pdf.cfx)
-cfx encrypt standard.pdf
-
-# Keep original file and save output elsewhere
-cfx encrypt standard.pdf --keep -o /backups/safe.cfx
+cfx encrypt taxes_2026.pdf
 ```
+> **What happens:** CFX will prompt you to create a password. Once finished, you will have a new encrypted file named `taxes_2026.pdf.cfx`, and the original `taxes_2026.pdf` will be deleted.
+
+*Scenario B: You want to encrypt `photo.jpg`, but you **don't** want CFX to delete the original file.*
+```bash
+cfx encrypt photo.jpg --keep
+```
+> **What happens:** You will now have both your original `photo.jpg` and a secure `photo.jpg.cfx`.
+
+*Scenario C: You want to save the encrypted file to a completely different folder, like a USB drive.*
+```bash
+cfx encrypt private_keys.txt --output /media/usb/backup.cfx
+```
+> **What happens:** The encrypted file is saved directly to your USB drive as `backup.cfx`.
+
+**Available Options**:
+- `--keep`: Keep the original file instead of deleting it.
+- `-o, --output <PATH>`: Choose a custom name or folder for the encrypted file.
+- `-f, --force`: If a file with the same name already exists, overwrite it.
+- `--no-progress`: Hide the loading bar (useful for automated scripts).
 
 ---
 
-## `cfx decrypt`
+## 2. Decrypting a File (`cfx decrypt`)
 
-**Purpose**: Decrypt a `.cfx` file back into its original form.
+**What it does**: Unlocks a `.cfx` file back into its original form.
 
-**Syntax**:
+**Basic Usage**:
 ```bash
-cfx decrypt <INPUT> [OPTIONS]
+cfx decrypt <file.cfx>
 ```
 
-**Arguments**:
-- `<INPUT>`: The required `.cfx` file to decrypt.
+**Beginner-Friendly Examples**:
 
-**Options**:
-- `-o, --output <PATH>`: The explicit path to write the decrypted file. If omitted, CFX reads the original filename from the encrypted metadata and uses it automatically.
-- `-f, --force`: Overwrite the destination output file if it already exists.
-- `--keep`: Do not delete the encrypted `<INPUT>` file after successful decryption.
-- `--no-progress`: Disable the interactive progress bar.
-
-**Examples**:
+*Scenario A: You want to unlock `taxes_2026.pdf.cfx`.*
 ```bash
-# Decrypt preserving original filename, and delete secret.cfx
-cfx decrypt secret.cfx
+cfx decrypt taxes_2026.pdf.cfx
 ```
+> **What happens:** CFX will ask for your password. If it's correct, it will recreate your original `taxes_2026.pdf`. The encrypted `.cfx` file is then deleted.
+
+*Scenario B: You want to unlock the file, but keep the `.cfx` archive intact as a backup.*
+```bash
+cfx decrypt taxes_2026.pdf.cfx --keep
+```
+> **What happens:** You get your unlocked `taxes_2026.pdf` back, but `taxes_2026.pdf.cfx` remains safely on your computer.
+
+*Scenario C: You want to extract the unlocked file to a specific location with a different name.*
+```bash
+cfx decrypt backup.cfx --output /home/user/Desktop/restored_keys.txt
+```
+
+**Available Options**:
+- `--keep`: Keep the encrypted `.cfx` file instead of deleting it.
+- `-o, --output <PATH>`: Choose a custom name or folder for the unlocked file.
+- `-f, --force`: Overwrite an existing file if one is already in the way.
+- `--no-progress`: Hide the loading bar.
 
 ---
 
-## `cfx info`
+## 3. Checking File Info (`cfx info`)
 
-**Purpose**: Display non-secret header metadata of a `.cfx` file without requiring a password.
+**What it does**: Safely reads the public metadata of an encrypted file (like the CFX version and algorithms used). This command **does not** require a password. It will never reveal the original filename or the size of the original file, as those are kept strictly secret.
 
-**Syntax**:
+**Basic Usage**:
 ```bash
-cfx info <INPUT>
+cfx info secret.cfx
 ```
 
-**Arguments**:
-- `<INPUT>`: The `.cfx` file to inspect.
-
-**Expected Behavior**:
-Reads the plaintext binary header and prints the format version, key derivation algorithm, and encryption algorithm used. It purposefully does not display the original filename or size, as those are encrypted for privacy.
+> **What happens:** CFX prints technical details about the file, confirming it is a valid CFX archive.
 
 ---
 
-## `cfx verify`
+## 4. Verifying a File (`cfx verify`)
 
-**Purpose**: Cryptographically authenticate an encrypted `.cfx` file and verify the password without extracting any data to disk.
+**What it does**: Checks that your `.cfx` file is perfectly intact, hasn't been corrupted, and confirms that you remember the correct password. It does all of this *without* actually saving the unlocked file to your hard drive.
 
-**Syntax**:
+**Basic Usage**:
 ```bash
-cfx verify <INPUT> [--no-progress]
+cfx verify secret.cfx
 ```
 
-**Arguments**:
-- `<INPUT>`: The `.cfx` file to verify.
+> **What happens:** CFX asks for your password. It then silently reads through the entire file. If it prints "Verification successful", you know the file is safe and your password is correct. If the file was corrupted or the password was wrong, it will tell you.
 
-**Options**:
-- `--no-progress`: Disable the interactive progress bar.
-
-**Expected Behavior**:
-Prompts for a password, derives the key, and iterates through every cryptographic chunk in the file to validate the Poly1305 MACs. Prints a success message if the file is pristine. Throws a cryptographic error on tampering or incorrect passwords.
+**Available Options**:
+- `--no-progress`: Hide the loading bar.
 
 ---
 
-## `cfx recover`
+## 5. Cleaning Up Interruptions (`cfx recover`)
 
-**Purpose**: Detect and safely clean up temporary files (`.tmp`) left behind by interrupted or failed operations.
+**What it does**: If your computer crashes or loses power while CFX is in the middle of encrypting or decrypting, it will leave behind a temporary file (ending in `.tmp`). The `recover` command safely cleans up these orphaned files to free up disk space.
 
-**Syntax**:
+**Basic Usage**:
 ```bash
-cfx recover <INPUT> [OPTIONS]
+cfx recover incomplete_file.cfx.tmp
 ```
 
-**Arguments**:
-- `<INPUT>`: The target `.tmp` file.
+> **What happens:** CFX confirms the file is an interrupted temporary payload and deletes it safely. It will refuse to delete healthy, complete `.cfx` files.
 
-**Expected Behavior**:
-Validates that the file is an orphaned `.tmp` payload. If valid, deletes the corrupted file to clean up disk space. It will explicitly refuse to process standard `.cfx` files and does not attempt magical data recovery on corrupted cryptography.
+---
+
+## Global Commands
+
+You can append these to any command to get help from the application itself:
+
+- `cfx --help`: Prints a quick summary of all available commands.
+- `cfx encrypt --help`: Prints all the specific options available for the `encrypt` command (works for all commands).
+- `cfx --version`: Prints the version of CFX you currently have installed.

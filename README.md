@@ -16,37 +16,14 @@ CFX is a cross-platform CLI utility for securely encrypting and decrypting indiv
 
 ## Usage
 
-### Encrypt a File
-Securely encrypt `secret.pdf` into `secret.cfx`:
-```bash
-cfx encrypt secret.pdf
-```
-By default, the original file is safely removed upon successful encryption. Use the `--keep` flag to retain the original file, or `-o / --output <PATH>` to dictate exactly where the encrypted file is written.
+CFX provides simple, intuitive commands for securely managing your files:
+- `cfx encrypt`: Securely encrypt a file.
+- `cfx decrypt`: Decrypt a `.cfx` file back to its original state.
+- `cfx info`: View non-secret metadata about an encrypted file.
+- `cfx verify`: Cryptographically verify a file without decrypting it.
+- `cfx recover`: Clean up temporary files from interrupted operations.
 
-### Decrypt a File
-Decrypt `secret.cfx` back to its original unencrypted form:
-```bash
-cfx decrypt secret.cfx
-```
-The original filename is securely stored inside the encrypted payload and will be automatically restored by default.
-
-### Inspect an Encrypted File
-View non-secret metadata (such as the CFX format version and encryption algorithms) without needing the password:
-```bash
-cfx info secret.cfx
-```
-
-### Verify File Integrity
-Authenticate a file's integrity and verify your password without outputting a decrypted plaintext file to disk:
-```bash
-cfx verify secret.cfx
-```
-
-### Recovery
-Safely clean up orphaned temporary files (`.tmp`) left behind if a CFX operation was abruptly interrupted:
-```bash
-cfx recover incomplete_file.cfx.tmp
-```
+**For full beginner-friendly instructions and detailed examples of how to run these commands, please see the [Command Reference & Usage Guide](docs/CLI.md).**
 
 ## Security Overview
 CFX utilizes a custom binary format (`.cfx`). It uses `argon2` for password-based key derivation alongside a 32-byte salt. The file contents are chunked and encrypted sequentially using the STREAM construction of `chacha20poly1305`. This guarantees data confidentiality and full file integrity—each chunk is independently authenticated, fully preventing truncation, reordering, or tampering attacks. 
@@ -65,6 +42,7 @@ cargo build --release
 
 ## Documentation Index
 Comprehensive documentation on the internal implementation of CFX is available in the `docs/` directory:
+- [Examples & Cookbook](docs/EXAMPLES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [CLI Reference](docs/CLI.md)
 - [Cryptography](docs/CRYPTOGRAPHY.md)
