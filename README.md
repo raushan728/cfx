@@ -2,66 +2,83 @@
 
 CFX is a cross-platform CLI utility for securely encrypting and decrypting individual files.
 
-## Features
-- **Secure by Default:** Uses ChaCha20Poly1305 with streaming authenticated encryption.
-- **Password-Based:** Derives robust cryptographic keys using Argon2id.
-- **Platform Agnostic:** Works natively on Windows, Linux, and macOS.
-- **Universal Support:** Processes any file type (PDF, Images, Source Code, Binaries, etc.).
-- **Streaming I/O:** Can encrypt/decrypt files up to 10 GiB using minimal constant memory.
-- **Failure Safe:** Preserves original files until successful operation completion and gracefully handles interrupted processes.
+## Project Status
+**Milestone 3 / v0.1.0**: Core functionality complete. All primary commands (`encrypt`, `decrypt`, `info`, `verify`, `recover`) are fully implemented and verified via comprehensive integration testing.
 
-## Installation
-*(Coming soon: Pre-compiled binaries and platform-specific installers)*
-
-For now, you can build it from source:
-```bash
-cargo build --release
-```
+## Key Features
+- **Secure by Default**: Employs ChaCha20Poly1305 with streaming authenticated encryption for robust confidentiality and integrity.
+- **Password-Based**: Derives extremely strong cryptographic keys using the modern Argon2id key derivation function.
+- **Universal Support**: Seamlessly processes any file type (PDFs, Images, Source Code, Raw Binaries, etc.) as raw byte streams.
+- **Streaming I/O**: Capable of securely processing files using minimal constant memory, rather than loading entire files into RAM.
+- **10 GiB File Limit**: Built-in guardrails restrict operations to files 10 GiB or smaller to maintain streaming stability.
+- **Failure Safe**: Preserves original files until operations fully succeed and gracefully catches interruption to avoid data corruption.
+- **Platform Agnostic**: Runs entirely natively on Windows, Linux, and macOS without dependencies.
 
 ## Usage
 
 ### Encrypt a File
-Encrypt `secret.pdf` into `secret.cfx`:
+Securely encrypt `secret.pdf` into `secret.cfx`:
 ```bash
 cfx encrypt secret.pdf
 ```
-By default, the original file is removed. Use `--keep` to retain it, or `--output <PATH>` to specify a different output location.
+By default, the original file is safely removed upon successful encryption. Use the `--keep` flag to retain the original file, or `-o / --output <PATH>` to dictate exactly where the encrypted file is written.
 
 ### Decrypt a File
-Decrypt `secret.cfx` back to its original form:
+Decrypt `secret.cfx` back to its original unencrypted form:
 ```bash
 cfx decrypt secret.cfx
 ```
-The original filename is preserved in the encrypted payload and automatically restored.
+The original filename is securely stored inside the encrypted payload and will be automatically restored by default.
 
 ### Inspect an Encrypted File
-View non-secret metadata (like CFX version and algorithm) without needing the password:
+View non-secret metadata (such as the CFX format version and encryption algorithms) without needing the password:
 ```bash
 cfx info secret.cfx
 ```
 
 ### Verify File Integrity
-Authenticate a file's integrity and verify the password without producing a decrypted output file:
+Authenticate a file's integrity and verify your password without outputting a decrypted plaintext file to disk:
 ```bash
 cfx verify secret.cfx
 ```
 
 ### Recovery
-Clean up temporary files (`.tmp`) left behind if an operation was interrupted:
+Safely clean up orphaned temporary files (`.tmp`) left behind if a CFX operation was abruptly interrupted:
 ```bash
 cfx recover incomplete_file.cfx.tmp
 ```
 
 ## Security Overview
-CFX utilizes a custom binary format (`.cfx`) to securely wrap your files. It employs `argon2` for password-based key derivation alongside a randomly generated 32-byte salt. The file contents are chunked and encrypted sequentially using the STREAM construction of `chacha20poly1305`, guaranteeing both data confidentiality and full file integrity. Each chunk is independently authenticated, preventing truncation or tampering attacks.
+CFX utilizes a custom binary format (`.cfx`). It uses `argon2` for password-based key derivation alongside a 32-byte salt. The file contents are chunked and encrypted sequentially using the STREAM construction of `chacha20poly1305`. This guarantees data confidentiality and full file integrity—each chunk is independently authenticated, fully preventing truncation, reordering, or tampering attacks. 
 
-**Warning:** There are no backdoors. If you lose your password, the encrypted data is permanently inaccessible.
+**Important Password Warning**: CFX does NOT implement backdoors, recovery phrases, or "forgot password" features. If you lose your password, your encrypted data is permanently inaccessible. 
 
 ## Development
-To format, lint, and test the project:
+To format, lint, test, and build the project from source:
 ```bash
 cargo fmt --all
 cargo check --all-targets
-cargo clippy --all-targets --all-features -- -D warnings
 cargo test --all-targets
+cargo clippy --all-targets --all-features -- -D warnings
+cargo build --release
 ```
+
+## Documentation Index
+Comprehensive documentation on the internal implementation of CFX is available in the `docs/` directory:
+- [Architecture](docs/ARCHITECTURE.md)
+- [CLI Reference](docs/CLI.md)
+- [Cryptography](docs/CRYPTOGRAPHY.md)
+- [File Format](docs/FILE_FORMAT.md)
+- [Error Handling](docs/ERROR_HANDLING.md)
+- [Recovery](docs/RECOVERY.md)
+- [Testing](docs/TESTING.md)
+- [Development](docs/DEVELOPMENT.md)
+- [Installation](docs/INSTALLATION.md)
+
+Also refer to:
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security](SECURITY.md)
+
+## License
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
