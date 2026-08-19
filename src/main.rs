@@ -1,3 +1,8 @@
+mod crypto;
+mod error;
+mod format;
+mod ops;
+
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
@@ -93,26 +98,34 @@ enum Commands {
 fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Encrypt { .. } => {
-            eprintln!("Error: The 'encrypt' feature is not implemented yet.");
-            std::process::exit(1);
-        }
-        Commands::Decrypt { .. } => {
-            eprintln!("Error: The 'decrypt' feature is not implemented yet.");
-            std::process::exit(1);
-        }
-        Commands::Info { .. } => {
-            eprintln!("Error: The 'info' feature is not implemented yet.");
-            std::process::exit(1);
-        }
-        Commands::Verify { .. } => {
-            eprintln!("Error: The 'verify' feature is not implemented yet.");
-            std::process::exit(1);
-        }
-        Commands::Recover { .. } => {
-            eprintln!("Error: The 'recover' feature is not implemented yet.");
-            std::process::exit(1);
-        }
+    let result = match cli.command {
+        Commands::Encrypt {
+            input,
+            output,
+            force,
+            keep,
+            no_progress,
+        } => ops::encrypt::execute(&input, output, force, keep, no_progress),
+        Commands::Decrypt {
+            input,
+            output,
+            force,
+            keep,
+            no_progress,
+        } => ops::decrypt::execute(&input, output, force, keep, no_progress),
+        Commands::Info { input } => ops::info::execute(&input),
+        Commands::Verify { input, no_progress } => ops::verify::execute(&input, no_progress),
+        Commands::Recover {
+            input,
+            output,
+            force,
+            keep,
+            no_progress,
+        } => ops::recover::execute(&input, output, force, keep, no_progress),
+    };
+
+    if let Err(e) = result {
+        eprintln!("error: {}", e);
+        std::process::exit(1);
     }
 }
