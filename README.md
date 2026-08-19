@@ -2,8 +2,6 @@
 
 CFX is a cross-platform CLI utility for securely encrypting and decrypting individual files.
 
-## Project Status
-**Milestone 3 / v0.1.0**: Core functionality complete. All primary commands (`encrypt`, `decrypt`, `info`, `verify`, `recover`) are fully implemented and verified via comprehensive integration testing.
 
 ## Key Features
 - **Secure by Default**: Employs ChaCha20Poly1305 with streaming authenticated encryption for robust confidentiality and integrity.
@@ -57,6 +55,12 @@ Also refer to:
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security](SECURITY.md)
+
+## Reach Out
+Have questions, suggestions, or just want to say hi? Feel free to connect:
+- **Twitter / X**: [@Raushan_090](https://twitter.com/Raushan_090)
+- **LinkedIn**: [Raushan Singh](https://www.linkedin.com/in/raushan-singh-807916390)
+- **Email**: [raushansinghrajpoot687@gmail.com](mailto:raushansinghrajpoot687@gmail.com)
 
 ## License
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
