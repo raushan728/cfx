@@ -4,10 +4,12 @@ CFX is a cross-platform CLI utility for securely encrypting and decrypting indiv
 
 **To start using CFX**, learn more in the [Command Reference & Usage Guide](docs/CLI.md).
 
+**To install CFX**, see the [Installation Guide](docs/INSTALLATION.md).
+
 **To explore real-world scenarios**, check out the [Examples & Cookbook](docs/EXAMPLES.md).
 
 > CFX provides simple, intuitive commands for securely managing your files. 
-> It utilizes a custom binary format (`.cfx`), modern key derivation (`argon2id`), and streaming authenticated encryption (`chacha20poly1305`) to guarantee absolute confidentiality and full file integrity.
+> It utilizes a custom binary format (`.cfx`), modern key derivation (`argon2id`), and streaming authenticated encryption (`chacha20poly1305`) to guarantee absolute confidentiality and full file i[...]
 
 ## Code Status
 
