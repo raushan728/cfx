@@ -108,14 +108,23 @@ cfx verify secret.cfx
 
 ## 5. Cleaning Up Interruptions (`cfx recover`)
 
-**What it does**: If your computer crashes or loses power while CFX is in the middle of encrypting or decrypting, it will leave behind a temporary file (ending in `.tmp`). The `recover` command safely cleans up these orphaned files to free up disk space.
+Safely cleans up temporary files left behind by an interrupted or failed CFX operation. It uses a specialized cryptographic marker (`CFX~`) to verify that the target is a genuine CFX temporary file before prompting for deletion.
 
-**Basic Usage**:
+**Usage (Exact File)**:
 ```bash
-cfx recover incomplete_file.cfx.tmp
+cfx recover <file.tmp>
 ```
 
-> **What happens:** CFX confirms the file is an interrupted temporary payload and deletes it safely. It will refuse to delete healthy, complete `.cfx` files.
+**Usage (Scanning a Directory)**:
+```bash
+cfx recover --scan <directory>
+```
+
+**Options**:
+- `<input>`: (Required unless `--scan` is used) The exact file path to safely clean up.
+- `--scan <DIRECTORY>`: (Required unless `<input>` is used) Safely inspects the target directory for genuine CFX temporary files.
+- `-f, --force`: Deletes verified CFX temporary files without asking for `[y/N]` confirmation.
+- `--no-progress`: Disables progress reporting.
 
 ---
 

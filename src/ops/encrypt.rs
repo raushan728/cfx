@@ -1,5 +1,5 @@
 use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
 use indicatif::{ProgressBar, ProgressStyle};
@@ -49,7 +49,8 @@ pub fn execute(
     let key = derive_key(&password, &salt)?;
     let mut encryptor = create_encryptor(&key, &nonce);
 
-    let header = CfxHeader::new(salt, nonce);
+    let mut header = CfxHeader::new(salt, nonce);
+    header.is_tmp = true;
 
     // 4. Create files
     let mut f_in = File::open(input).map_err(CfxError::Io)?;
@@ -133,7 +134,12 @@ pub fn execute(
     }
 
     // 8. Finalize (rename tmp to target and optionally remove input)
-    f_out.sync_all()?;
+    f_out.flush()?;
+    f_out.seek(SeekFrom::Start(0)).map_err(CfxError::Io)?;
+    f_out
+        .write_all(crate::format::MAGIC_BYTES)
+        .map_err(CfxError::Io)?;
+    f_out.sync_all().map_err(CfxError::Io)?;
     fs::rename(&tmp_out_path, &out_path).map_err(|e| {
         let _ = fs::remove_file(&tmp_out_path);
         CfxError::Io(e)

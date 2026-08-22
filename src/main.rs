@@ -73,21 +73,22 @@ enum Commands {
         no_progress: bool,
     },
     /// Recover a corrupted encrypted file
+    #[command(group(
+        clap::ArgGroup::new("target")
+            .required(true)
+            .args(["input", "scan"])
+    ))]
     Recover {
         /// The file to recover
-        input: PathBuf,
+        input: Option<PathBuf>,
 
-        /// The output file path
-        #[arg(short, long, value_name = "PATH")]
-        output: Option<PathBuf>,
+        /// Scan a directory for temporary files
+        #[arg(long, value_name = "DIRECTORY")]
+        scan: Option<PathBuf>,
 
-        /// Overwrite the output file if it exists
+        /// Overwrite/delete without confirmation
         #[arg(short, long)]
         force: bool,
-
-        /// Retain the original input file after recovery
-        #[arg(long)]
-        keep: bool,
 
         /// Disable progress reporting
         #[arg(long)]
@@ -117,11 +118,10 @@ fn main() {
         Commands::Verify { input, no_progress } => ops::verify::execute(&input, no_progress),
         Commands::Recover {
             input,
-            output,
+            scan,
             force,
-            keep,
             no_progress,
-        } => ops::recover::execute(&input, output, force, keep, no_progress),
+        } => ops::recover::execute(input, scan, force, no_progress),
     };
 
     if let Err(e) = result {

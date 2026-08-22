@@ -4,6 +4,7 @@ use std::io::{Read, Write};
 use crate::error::{CfxError, Result};
 
 pub const MAGIC_BYTES: &[u8; 4] = b"CFX1";
+pub const MAGIC_BYTES_TMP: &[u8; 4] = b"CFX~";
 pub const VERSION: u8 = 1;
 pub const KDF_ID_ARGON2: u8 = 1;
 pub const CIPHER_ID_CHACHA: u8 = 1;
@@ -12,6 +13,7 @@ pub const NONCE_LEN: usize = 8;
 
 #[derive(Debug, Clone)]
 pub struct CfxHeader {
+    pub is_tmp: bool,
     pub version: u8,
     pub kdf_id: u8,
     pub cipher_id: u8,
@@ -22,6 +24,7 @@ pub struct CfxHeader {
 impl CfxHeader {
     pub fn new(salt: [u8; SALT_LEN], nonce: [u8; NONCE_LEN]) -> Self {
         Self {
+            is_tmp: false,
             version: VERSION,
             kdf_id: KDF_ID_ARGON2,
             cipher_id: CIPHER_ID_CHACHA,
@@ -31,7 +34,12 @@ impl CfxHeader {
     }
 
     pub fn write_to<W: Write>(&self, writer: &mut W) -> Result<()> {
-        writer.write_all(MAGIC_BYTES)?;
+        let magic = if self.is_tmp {
+            MAGIC_BYTES_TMP
+        } else {
+            MAGIC_BYTES
+        };
+        writer.write_all(magic)?;
         writer.write_u8(self.version)?;
         writer.write_u8(self.kdf_id)?;
         writer.write_u8(self.cipher_id)?;
@@ -49,6 +57,27 @@ impl CfxHeader {
             return Err(CfxError::InvalidFormat("Invalid magic bytes".into()));
         }
 
+        Self::read_remaining(reader, false)
+    }
+
+    pub fn read_any<R: Read>(reader: &mut R) -> Result<Self> {
+        let mut magic = [0u8; 4];
+        reader.read_exact(&mut magic).map_err(|_| {
+            CfxError::InvalidFormat("Failed to read magic bytes or file too short".into())
+        })?;
+
+        let is_tmp = if &magic == MAGIC_BYTES {
+            false
+        } else if &magic == MAGIC_BYTES_TMP {
+            true
+        } else {
+            return Err(CfxError::InvalidFormat("Invalid magic bytes".into()));
+        };
+
+        Self::read_remaining(reader, is_tmp)
+    }
+
+    fn read_remaining<R: Read>(reader: &mut R, is_tmp: bool) -> Result<Self> {
         let version = reader
             .read_u8()
             .map_err(|_| CfxError::InvalidFormat("Failed to read version".into()))?;
@@ -90,6 +119,7 @@ impl CfxHeader {
             .map_err(|_| CfxError::InvalidFormat("Failed to read nonce".into()))?;
 
         Ok(Self {
+            is_tmp,
             version,
             kdf_id,
             cipher_id,
